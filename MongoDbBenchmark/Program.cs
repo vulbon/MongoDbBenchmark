@@ -19,7 +19,7 @@ namespace MongoDbBenchmark
             Task.Run(async () =>
             {
                 GetDataByRawBsonDocument();
-
+                GetDataByBsonDocument();
                 GetDataByModel();
             }).Wait();
 
@@ -52,7 +52,36 @@ namespace MongoDbBenchmark
             sw.Stop();
 
             int count = rawBsonDoc.Count();
-            WriteTraceLog("GotData", new { sw.Elapsed.TotalMilliseconds, count });
+            WriteTraceLog("GetDataByRawBsonDocument - GotData", new { sw.Elapsed.TotalMilliseconds, count });
+        }
+
+        private static void GetDataByBsonDocument()
+        {
+            Stopwatch sw = Stopwatch.StartNew(); ;
+            var collection = IntraMongoDB.GetCollection<BsonDocument>("SalesData");
+            sw.Stop();
+            WriteTraceLog("GotCollection", new { sw.Elapsed.TotalMilliseconds });
+            sw.Restart();
+
+            BsonDocument filter = new BsonDocument
+            {
+                {
+                    "IssueYear",
+                    new BsonDocument{{"$in", new BsonArray(Years)} }
+                }
+            };
+            var projection = Builders<BsonDocument>.Projection.Exclude("_id");
+
+            sw.Stop();
+            WriteTraceLog("FiltersAndProjection", new { sw.Elapsed.TotalMilliseconds });
+
+            sw.Restart();
+            var bsonDoc = collection.Find(filter).Project<BsonDocument>(projection).ToList();
+
+            sw.Stop();
+
+            int count = bsonDoc.Count();
+            WriteTraceLog("GetDataByBsonDocument - GotData", new { sw.Elapsed.TotalMilliseconds, count });
         }
 
         private static void GetDataByModel()
@@ -73,7 +102,7 @@ namespace MongoDbBenchmark
             var result = collection.Find(filter).Project<SalesData>(projection).ToList();
             sw.Stop();
 
-            WriteTraceLog("GotData", new { sw.Elapsed.TotalMilliseconds, result.Count });
+            WriteTraceLog("GetDataByModel - GotData", new { sw.Elapsed.TotalMilliseconds, result.Count });
         }
 
         private static void WriteTraceLog(string title, object obj)
