@@ -1,6 +1,7 @@
 ﻿using DataModel;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDbBenchmark.Tests;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -16,94 +17,33 @@ namespace MongoDbBenchmark
 
         static void Main(string[] args)
         {
-            Task.Run(async () =>
-            {
-                GetDataByRawBsonDocument();
-                GetDataByBsonDocument();
-                GetDataByModel();
-            }).Wait();
+            //iTest getDataByRawBsonDocument = new MongoDbBenchmark.Tests.ViewModel.GetDataByRawBsonDocument();
+            //iTest getDataByBsonDocument = new MongoDbBenchmark.Tests.ViewModel.GetDataByBsonDocument();
+            iTest getDataByLazyBsonDocument = new MongoDbBenchmark.Tests.FullModel.GetDataByLazyBsonDocument();
+            //iTest getDataByModel = new MongoDbBenchmark.Tests.ViewModel.GetDataByModel();
+
+            runTest(getDataByLazyBsonDocument);
+            //runTest(getDataByRawBsonDocument);
+            //runTest(getDataByBsonDocument);
+            //runTest(getDataByModel);
 
             Console.ReadLine();
+
         }
 
-        private static void GetDataByRawBsonDocument()
+        private static void runTest (iTest test)
         {
-            Stopwatch sw = Stopwatch.StartNew(); ;
-            var collection = IntraMongoDB.GetCollection<RawBsonDocument>("SalesData");
-            sw.Stop();
-            WriteTraceLog("GotCollection", new { sw.Elapsed.TotalMilliseconds });
-            sw.Restart();
+            Console.WriteLine(test.GetType().FullName);
+            int dataSize = 1000;
 
-            BsonDocument filter = new BsonDocument
+            for (int i = 0; i < 100; i++)
             {
-                {
-                    "IssueYear",
-                    new BsonDocument{{"$in", new BsonArray(Years)} }
-                }
-            };
-            var projection = Builders<RawBsonDocument>.Projection.Exclude("_id");
-
-            sw.Stop();
-            WriteTraceLog("FiltersAndProjection", new { sw.Elapsed.TotalMilliseconds });
-
-            sw.Restart();
-            var rawBsonDoc = collection.Find(filter).Project<RawBsonDocument>(projection).ToList();
-
-            sw.Stop();
-
-            int count = rawBsonDoc.Count();
-            WriteTraceLog("GetDataByRawBsonDocument - GotData", new { sw.Elapsed.TotalMilliseconds, count });
+                test.runTest(IntraMongoDB, dataSize);
+                dataSize += 1000;
+            }
+            Console.WriteLine("**************************************************");
         }
 
-        private static void GetDataByBsonDocument()
-        {
-            Stopwatch sw = Stopwatch.StartNew(); ;
-            var collection = IntraMongoDB.GetCollection<BsonDocument>("SalesData");
-            sw.Stop();
-            WriteTraceLog("GotCollection", new { sw.Elapsed.TotalMilliseconds });
-            sw.Restart();
-
-            BsonDocument filter = new BsonDocument
-            {
-                {
-                    "IssueYear",
-                    new BsonDocument{{"$in", new BsonArray(Years)} }
-                }
-            };
-            var projection = Builders<BsonDocument>.Projection.Exclude("_id");
-
-            sw.Stop();
-            WriteTraceLog("FiltersAndProjection", new { sw.Elapsed.TotalMilliseconds });
-
-            sw.Restart();
-            var bsonDoc = collection.Find(filter).Project<BsonDocument>(projection).ToList();
-
-            sw.Stop();
-
-            int count = bsonDoc.Count();
-            WriteTraceLog("GetDataByBsonDocument - GotData", new { sw.Elapsed.TotalMilliseconds, count });
-        }
-
-        private static void GetDataByModel()
-        {
-            Stopwatch sw = Stopwatch.StartNew(); ;
-            var collection = IntraMongoDB.GetCollection<SalesData>("SalesData");
-            sw.Stop();
-            WriteTraceLog("GotCollection", new { sw.Elapsed.TotalMilliseconds });
-            sw.Restart();
-
-            var filter = Builders<SalesData>.Filter.Where(x => Years.Contains(x.IssueYear));
-            var projection = Builders<SalesData>.Projection.Exclude("_id");
-
-            sw.Stop();
-            WriteTraceLog("FiltersAndProjection", new { sw.Elapsed.TotalMilliseconds });
-
-            sw.Restart();
-            var result = collection.Find(filter).Project<SalesData>(projection).ToList();
-            sw.Stop();
-
-            WriteTraceLog("GetDataByModel - GotData", new { sw.Elapsed.TotalMilliseconds, result.Count });
-        }
 
         private static void WriteTraceLog(string title, object obj)
         {
