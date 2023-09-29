@@ -8,12 +8,13 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MongoDbBenchmark</RootNamespace>
     <AssemblyName>MongoDbBenchmark</AssemblyName>
-    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -152,8 +153,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="iTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests\FullModel\GetDataByLazyBsonDocument.cs" />
+    <Compile Include="Tests\FullModel\GetDataByBsonDocument.cs" />
+    <Compile Include="Tests\FullModel\GetDataByModel.cs" />
+    <Compile Include="Tests\FullModel\GetDataByRawBsonDocument.cs" />
+    <Compile Include="Tests\Streaming\StreamTest.cs" />
+    <Compile Include="Tests\ViewModel\GetDataByBsonDocument.cs" />
+    <Compile Include="Tests\ViewModel\GetDataByModel.cs" />
+    <Compile Include="Tests\ViewModel\GetDataByRawBsonDocument.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
